@@ -10,7 +10,8 @@ public class Main {
         Stream<Integer> stream = new Stream<>(list);
         Stream<String> stream1 = stream.filter(i->i>3)
                 .filter(i->i%2 == 0)
-                .map(i->String.valueOf(i));
+                .map(String::valueOf)
+                .filter(i -> i.length() >= 2);
         System.out.println("Performing lazy evaluation...");
         stream1.forEach(System.out::println);
 //        stream.forEach(System.out::println);

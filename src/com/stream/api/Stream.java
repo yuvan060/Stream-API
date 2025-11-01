@@ -9,32 +9,30 @@
 
     public class Stream<T> {
         private final List<T> source;
-        private final List<Function<Object, Object>> operations;
+        private final List<Operation<T,?>> operations;
         private Stream<?> downStream;
 
         public Stream(List<T> source) {
             this(source, new ArrayList<>());
         }
 
-        public Stream(List<T> source, List<Function<Object, Object>> operations) {
+        public Stream(List<T> source, List<Operation<T, ?>> operations) {
             this.source = source;
             this.operations = operations;
         }
 
         public Stream<T> filter(Predicate<T> predicate) {
             isConsumed();
-            List<Function<Object, Object>> newOperations =  new ArrayList<>(operations);
-            Function<Object, Object> predicateObj = (item) -> predicate.test((T)item) ? item : null;
-            newOperations.add(predicateObj);
+            List<Operation<T,?>> newOperations =  new ArrayList<>(operations);
+            newOperations.add(new FilterOperation<>(predicate));
             this.downStream =  new Stream<>(source, newOperations);
             return (Stream<T>) this.downStream;
         }
 
         public <R> Stream<R> map(Function<T, R> function) {
             isConsumed();
-            List<Function<Object, Object>> newOperations = new ArrayList<>(operations);
-            Function<Object, Object> funObj = (item) -> function.apply((T)item);
-            newOperations.add(funObj);
+            List<Operation<T,?>> newOperations = new ArrayList<>(operations);
+            newOperations.add(new MapOperation<>(function));
             this.downStream = new Stream<>(source, newOperations);
             return (Stream<R>) this.downStream;
         }
@@ -43,7 +41,7 @@
             isConsumed();
             for(T i : source) {
                 Object current = i;
-                for(Function<Object, Object> opr : this.operations) {
+                for(Operation opr : this.operations) {
                     current = opr.apply(current);
                     if(current == null) {
                         break;
@@ -60,3 +58,4 @@
             }
         }
     }
+
